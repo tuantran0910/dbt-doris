@@ -16,7 +16,7 @@
 -- under the License.
 
 {% macro doris__list_relations_without_caching(schema_relation) -%}
-  {% call statement('list_relations_without_caching', fetch_result=True) %}
+    {% call statement('list_relations_without_caching', fetch_result=True) %}
     select
       null as "database",
       table_name as name,
@@ -27,7 +27,7 @@
     from information_schema.tables
     where table_schema = '{{ schema_relation.schema }}'
   {% endcall %}
-  {{ return(load_result('list_relations_without_caching').table) }}
+    {{ return(load_result('list_relations_without_caching').table) }}
 {%- endmacro %}
 
 {% macro doris__get_catalog(information_schema, schemas) -%}
@@ -71,9 +71,9 @@
     join columns using (table_schema, table_name)
     where tables.table_schema not in ('information_schema')
     and (
-    {%- for schema in schemas -%}
-      upper(tables.table_schema) = upper('{{ schema }}'){%- if not loop.last %} or {% endif -%}
-    {%- endfor -%}
+        {%- for schema in schemas -%}
+            upper(tables.table_schema) = upper('{{ schema }}'){%- if not loop.last %} or {% endif -%}
+        {%- endfor -%}
     )
     order by column_index
     {%- endcall -%}
@@ -87,7 +87,7 @@
 
 {% macro doris__list_schemas(database) -%}
     {% call statement('list_schemas', fetch_result=True, auto_begin=False) -%}
-    select distinct schema_name from information_schema.schemata
+        select distinct schema_name from information_schema.schemata
     {%- endcall %}
     {{ return(load_result('list_schemas').table) }}
 {%- endmacro %}

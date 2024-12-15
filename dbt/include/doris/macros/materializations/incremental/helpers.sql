@@ -31,12 +31,12 @@
 {% macro tmp_delete(tmp_relation, target_relation, unique_key=none, statement_name="pre_main") %}
   {% if unique_key is not none %}
     {% set unique_key_str %}
-        {% for item in unique_key %} 
-                {{ item }},  
+        {% for item in unique_key %}
+                {{ item }},
         {% endfor %}
     {% endset %}
      insert into  {{ target_relation }} ( {{unique_key_str ~'`__DORIS_DELETE_SIGN__`'}})
-    select  {{ unique_key_str }} 
+    select  {{ unique_key_str }}
         1 as `__DORIS_DELETE_SIGN__`
         from {{ tmp_relation }}
   {% endif %}

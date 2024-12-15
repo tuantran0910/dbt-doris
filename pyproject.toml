@@ -1,0 +1,123 @@
+[project]
+dynamic = ["version"]
+name = "dbt-doris"
+description = "The set of adapter protocols and base functionality that supports integration Doris with dbt-core"
+readme = "README.md"
+keywords = ["dbt", "adapter", "adapters", "database", "elt", "dbt-core", "dbt Core", "doris"]
+requires-python = ">=3.10,<=3.12"
+authors = [
+    { name = "tuantran0910", email = "tntuan0910@gmail.com" },
+]
+maintainers = [
+    { name = "tuantran0910", email = "tntuan0910@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "agate>=1.0,<2.0",
+    "dbt-adapters>=1.10.4",
+    "dbt-common>=1.10.4,<2.0",
+    "dbt-core>=1.9.0",
+    "mysql-connector-python>=9.1.0",
+    "urllib3>=2.2.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/tuantran0910/dbt-doris"
+Repository = "https://github.com/tuantran0910/dbt-doris.git"
+Issues = "https://github.com/tuantran0910/dbt-doris/issues"
+Changelog = "https://github.com/tuantran0910/dbt-doris/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+include = ["dbt"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["dbt"]
+
+[tool.hatch.version]
+path = "dbt/adapters/doris/__version__.py"
+
+[tool.hatch.envs.default]
+python = "3.12"
+dependencies = [
+    "dbt-adapters @ git+https://github.com/dbt-labs/dbt-adapters.git",
+    "dbt-common @ git+https://github.com/dbt-labs/dbt-common.git",
+    "dbt-tests-adapter @ git+https://github.com/dbt-labs/dbt-adapters.git#subdirectory=dbt-tests-adapter",
+    "dbt-core @ git+https://github.com/dbt-labs/dbt-core.git#subdirectory=core",
+    "pre-commit==3.7.0",
+    "freezegun",
+    "pytest",
+    "pytest-dotenv",
+    "pytest-mock",
+    "pytest-xdist",
+]
+
+[tool.hatch.envs.default.env-vars]
+DBT_TEST_USER_1 = "dbt_test_user_1"
+DBT_TEST_USER_2 = "dbt_test_user_2"
+DBT_TEST_USER_3 = "dbt_test_user_3"
+
+[tool.hatch.envs.default.scripts]
+setup = "pre-commit install"
+code-quality = "pre-commit run --all-files"
+unit-tests = "python -m pytest {args:tests/unit}"
+integration-tests = "python -m pytest {args:tests/functional}"
+docker-dev = [
+    "echo Does not support integration testing, only development and unit testing.",
+	"docker build -f docker/dev.Dockerfile -t dbt-doris-dev .",
+	"docker run --rm -it --name dbt-doris-dev -v $(pwd):/opt/code dbt-doris-dev",
+]
+docker-prod = "docker build -f docker/Dockerfile -t dbt-doris ."
+
+[tool.hatch.envs.build]
+detached = true
+dependencies = [
+    "wheel",
+    "twine",
+    "check-wheel-contents",
+]
+
+[tool.hatch.envs.build.scripts]
+check-all = [
+    "- check-wheel",
+    "- check-sdist",
+]
+check-wheel = [
+    "twine check dist/*",
+    "find ./dist/dbt_doris-*.whl -maxdepth 1 -type f | xargs python -m pip install --force-reinstall --find-links=dist/",
+    "pip freeze | grep dbt-doris",
+]
+check-sdist = [
+    "check-wheel-contents dist/*.whl --ignore W007,W008",
+    "find ./dist/dbt_doris-*.gz -maxdepth 1 -type f | xargs python -m pip install --force-reinstall --find-links=dist/",
+    "pip freeze | grep dbt-doris",
+]
+
+[tool.pytest]
+env_files = ["test.env"]
+testpaths = [
+    "tests/functional",
+    "tests/unit",
+]
+
+[dependency-groups]
+dev = [
+    "bumpversion>=0.6.0",
+    "flake8>=7.1.1",
+    "pre-commit>=4.0.1",
+    "pytest>=8.3.4",
+    "ruff>=0.8.3",
+    "sqlfluff>=3.3.0",
+]

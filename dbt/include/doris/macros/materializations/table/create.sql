@@ -19,12 +19,12 @@
     {% set sql_header = config.get('sql_header', none) %}
     {% set table = relation.include(database=False) %}
     {{ sql_header if sql_header is not none }}
-    {%if temporary %}
-        {{doris__drop_relation(relation)}}
+    {% if temporary %}
+        {{ doris__drop_relation(relation) }}
     {% endif %}
     create table {{ table }}
     {{ doris__duplicate_key() }}
-    {{ doris__table_comment()}}
+    {{ doris__table_comment() }}
     {{ doris__partition_by() }}
     {{ doris__distributed_by() }}
     {{ doris__properties() }} as {{ doris__table_colume_type(sql) }};
@@ -35,9 +35,9 @@
     {% set sql_header = config.get('sql_header', none) %}
     {% set table = relation.include(database=False) %}
     {{ sql_header if sql_header is not none }}
-    create table {{ table }}
+    create table if not exists {{ table }}
     {{ doris__unique_key() }}
-    {{ doris__table_comment()}}
+    {{ doris__table_comment() }}
     {{ doris__partition_by() }}
     {{ doris__distributed_by() }}
     {{ doris__properties() }} as {{ doris__table_colume_type(sql) }};
@@ -48,10 +48,10 @@
 {% macro doris__table_colume_type(sql) -%}
     {% set cols = model.get('columns') %}
     {% if cols %}
-        select {{get_table_columns_and_constraints()}} from (
-            {{sql}}
+        select {{ get_table_columns_and_constraints() }} from (
+            {{ sql }}
         ) `_table_colume_type_name`
     {% else %}
-        {{sql}}
+        {{ sql }}
     {%- endif -%}
 {%- endmacro %}

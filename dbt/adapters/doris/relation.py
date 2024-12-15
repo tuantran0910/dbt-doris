@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,11 +16,13 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+from dataclasses import dataclass
+from dataclasses import field
 
-from dataclasses import dataclass, field
+from dbt_common.exceptions import DbtRuntimeError
 
-from dbt.adapters.base.relation import BaseRelation, Policy
-from dbt.exceptions import DbtRuntimeError
+from dbt.adapters.base.relation import BaseRelation
+from dbt.adapters.base.relation import Policy
 
 
 @dataclass
@@ -41,7 +42,9 @@ class DorisIncludePolicy(Policy):
 @dataclass(frozen=True, eq=False, repr=False)
 class DorisRelation(BaseRelation):
     quote_policy: DorisQuotePolicy = field(default_factory=lambda: DorisQuotePolicy())
-    include_policy: DorisIncludePolicy = field(default_factory=lambda: DorisIncludePolicy())
+    include_policy: DorisIncludePolicy = field(
+        default_factory=lambda: DorisIncludePolicy()
+    )
     quote_character: str = "`"
 
     def __post_init__(self):

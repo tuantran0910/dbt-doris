@@ -2,12 +2,19 @@
 # encoding: utf-8
 
 default:
+  target: dev
   outputs:
     dev:
       type: doris
-        host: <host>
-        port: <port_num>
-        username: <user>
-        password: <pass>
-        database: <db>
-  target: dev
+      host: [host]
+      port: [port] # optional
+      username: [username]
+      password: [password]
+      schema: [schema]
+    prod:
+      type: doris
+      host: [host]
+      port: [port] # optional
+      username: [username]
+      password: [password]
+      schema: [schema]

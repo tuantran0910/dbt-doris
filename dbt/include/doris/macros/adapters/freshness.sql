@@ -16,5 +16,5 @@
 -- under the License.
 
 {% macro doris__current_timestamp() -%}
-  current_timestamp()
+    current_timestamp()
 {%- endmacro %}

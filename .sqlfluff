@@ -1,0 +1,58 @@
+[sqlfluff]
+# Supported dialects https://docs.sqlfluff.com/en/stable/dialects.html
+# Or run 'sqlfluff dialects'
+dialect = mysql
+# One of [raw|jinja|python|placeholder|dbt]
+templater = jinja
+# Comma separated list of rules to exclude, or None
+exclude_rules = L014,L016,L020,L026,L027,L028,L029,L031,L032,L034,L037,L042,L044,L051
+# L014 - Unquoted identifiers (e.g. column names) will be mixed case so don't enforce case
+# L016 - We allow longer lines as some of our queries are complex. Maybe should limit in future?
+# L020 - Asks for unique table aliases meaning it complains if selecting from two 2021_07_01 tables as implicit alias is table name (not fully qualified) so same.
+# L026 - BigQuery uses STRUCTS which can look like incorrect table references
+# L027 - Asks for qualified columns for ambiguous ones, but we not qualify our columns, and they are not really ambiguous (or BigQuery would complain)
+# L028 - Insists on references in column names even if not ambiguous. Bit OTT.
+# L029 - Avoids keywords as identifiers but we use this a lot (e.g. AS count, AS max...etc.)
+# L031 - Avoid aliases in from and join - why?
+# L032 - Uses joins instead of USING - why?
+# L034 - Insists on wildcards (*) in certain SELECT order - why?
+# L037 - if using DESC in one ORDER BY column, then insist on ASC/DESC for all.
+# L042 - Use CTEs instead of subqueries. We don't use this consistently and big rewrite to do that. Maybe revisit in future?
+# L044 - Currently allow SElECT *. Maybe revisit in future?
+# L051 - INNER JOIN must be fully qualified. Probably should use this but not our style.
+
+# Number of passes to run before admitting defeat
+runaway_limit = 100
+# Ignore errors by category (one or more of the following, separated by commas: lexing,linting,parsing,templating)
+ignore = parsing,templating
+# Very large files can make the parser effectively hang.
+# Set either to 0 to disable.
+large_file_skip_byte_limit = 100000
+
+[sqlfluff:templater:jinja]
+apply_dbt_builtins = True
+
+[sqlfluff:indentation]
+# See https://docs.sqlfluff.com/en/stable/layout.html#configuring-indent-locations
+indented_ctes = True
+indented_joins = False
+indented_using_on = True
+template_blocks_indent = True
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.identifiers]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = upper
+
+[sqlfluff:rules:references.special_chars]
+# Special Characters in Identifiers
+allow_space_in_identifier = True
+additional_allowed_characters = ['.','(',')','-']
+
+[sqlfluff:rules:aliasing.length]
+# Table Alias Lengths
+min_alias_length = 4

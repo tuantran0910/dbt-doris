@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,46 +16,67 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import ContextManager, Optional, Union
+from typing import Any
+from typing import Generator
+from typing import Optional
+from typing import Union
 
 import mysql.connector
+from dbt_common.exceptions import DbtDatabaseError
+from dbt_common.exceptions import DbtRuntimeError
+from dbt_common.helper_types import Port
+from mashumaro.jsonschema.annotations import Maximum
+from mashumaro.jsonschema.annotations import Minimum
+from typing_extensions import Annotated
 
-from dbt import exceptions
-from dbt.adapters.base import Credentials
+from dbt.adapters.contracts.connection import AdapterResponse
+from dbt.adapters.contracts.connection import Connection
+from dbt.adapters.contracts.connection import Credentials
+from dbt.adapters.events.logging import AdapterLogger
 from dbt.adapters.sql import SQLConnectionManager
-from dbt.contracts.connection import AdapterResponse, Connection, ConnectionState
-from dbt.events import AdapterLogger
 
-logger = AdapterLogger("doris")
+
+logger = AdapterLogger("Doris")
 
 
 @dataclass
 class DorisCredentials(Credentials):
     host: str = "127.0.0.1"
-    port: int = 9030
+    port: Annotated[Port, Minimum(1), Maximum(65535)] = 9030
     username: str = "root"
     password: str = ""
-    database: Optional[str] = None
+    database: Optional[str] = None  # type: ignore[assignment]
     schema: Optional[str] = None
 
+    _ALIASES = {
+        "uid": "username",
+        "user": "username",
+        "pwd": "password",
+        "pass": "password",
+        "dbname": "schema",
+    }
+
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+            self.database = None
 
     @property
     def type(self):
         return "doris"
 
+    @property
+    def unique_field(self) -> Optional[str]:
+        return self.schema
+
     def _connection_keys(self):
         return "host", "port", "user", "schema"
 
-    @property
-    def unique_field(self) -> str:
-        return self.schema
-
     def __post_init__(self):
         if self.database is not None and self.database != self.schema:
-            raise exceptions.DbtRuntimeError(
+            raise DbtRuntimeError(
                 f"    schema: {self.schema} \n"
                 f"    database: {self.database} \n"
                 f"On Doris, database must be omitted or have the same value as"
@@ -67,11 +87,40 @@ class DorisCredentials(Credentials):
 class DorisConnectionManager(SQLConnectionManager):
     TYPE = "doris"
 
+    @contextmanager
+    def exception_handler(self, sql: str) -> Generator[Any, None, None]:
+        try:
+            yield
+
+        except mysql.connector.DatabaseError as e:
+            logger.debug(f"Doris database error: {e}, sql: {sql}")
+
+            try:
+                self.rollback_if_open()
+            except mysql.connector.Error:
+                logger.debug("Failed to release connection!")
+                pass
+
+            raise DbtDatabaseError(str(e).strip()) from e
+
+        except Exception as e:
+            logger.debug(f"Error running SQL: {sql}")
+            logger.debug("Rolling back transaction.")
+            self.rollback_if_open()
+            if isinstance(e, DbtRuntimeError):
+                # During a sql query, an internal to dbt exception was raised.
+                # this sounds a lot like a signal handler and probably has
+                # useful information, so raise it without modification.
+                raise e
+
+            raise DbtRuntimeError(str(e)) from e
+
     @classmethod
     def open(cls, connection: Connection) -> Connection:
         if connection.state == "open":
             logger.debug("Connection is already open, skipping open")
             return connection
+
         credentials = cls.get_credentials(connection.credentials)
         kwargs = {
             "host": credentials.host,
@@ -85,33 +134,39 @@ class DorisConnectionManager(SQLConnectionManager):
 
         try:
             connection.handle = mysql.connector.connect(**kwargs)
-            connection.state = 'open'
+            connection.state = "open"
         except mysql.connector.Error:
-
             try:
-                logger.debug("Failed connection without supplying the `database`. "
-                             "Trying again with `database` included.")
-                connection.handle = mysql.connector.connect(**kwargs)
-                connection.state = 'open'
-            except mysql.connector.Error as e:
+                logger.debug(
+                    "Failed connection without supplying the `database`. "
+                    "Trying again with `database` included."
+                )
 
-                logger.debug("Got an error when attempting to open a mysql "
-                             "connection: '{}'"
-                             .format(e))
+                # Try again with the database included
+                kwargs["database"] = credentials.schema
+
+                connection.handle = mysql.connector.connect(**kwargs)
+                connection.state = "open"
+            except mysql.connector.Error as e:
+                logger.debug(
+                    "Got an error when attempting to open a mysql "
+                    "connection: '{}'".format(e)
+                )
 
                 connection.handle = None
-                connection.state = 'fail'
+                connection.state = "fail"
 
-                raise exceptions.FailedToConnectError(str(e))
+                raise DbtDatabaseError(str(e))
+
         return connection
-
-    @classmethod
-    def get_credentials(cls, credentials):
-        return credentials
 
     @classmethod
     def cancel(self, connection: Connection):
         connection.handle.close()
+
+    @classmethod
+    def get_credentials(cls, credentials):
+        return credentials
 
     @classmethod
     def get_response(cls, cursor) -> Union[AdapterResponse, str]:
@@ -120,24 +175,15 @@ class DorisConnectionManager(SQLConnectionManager):
 
         if cursor is not None and cursor.rowcount is not None:
             num_rows = cursor.rowcount
+
+        # There's no real way to get the status from the
+        # mysql-connector-python driver.
+        # So just return the default value.
         return AdapterResponse(
             code=code,
             _message=f"{num_rows} rows affected",
             rows_affected=num_rows,
         )
-
-    @contextmanager
-    def exception_handler(self, sql: str) -> ContextManager:
-        try:
-            yield
-        except mysql.connector.DatabaseError as e:
-            logger.debug(f"Doris database error: {e}, sql: {sql}")
-            raise exceptions.DbtDatabaseError(str(e)) from e
-        except Exception as e:
-            logger.debug(f"Error running SQL: {sql}")
-            if isinstance(e, exceptions.DbtRuntimeError):
-                raise e
-            raise exceptions.DbtRuntimeError(str(e)) from e
 
     @classmethod
     def begin(self):

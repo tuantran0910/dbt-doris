@@ -16,37 +16,46 @@
 -- under the License.
 
 {% materialization table, adapter='doris' %}
-
   {%- set existing_relation = load_cached_relation(this) -%}
   {%- set target_relation = this.incorporate(type='table') %}
   {%- set intermediate_relation =  make_intermediate_relation(target_relation) -%}
   {%- set preexisting_intermediate_relation = load_cached_relation(intermediate_relation) -%}
 
-  -- grab current tables grants config for comparision later on
+  -- Grab current tables grants config for comparision later on
   {% set grant_config = config.get('grants') %}
 
-  -- drop the temp relations if they exist already in the database
+  -- Drop the temp relations if they exist already in the database
   {{ doris__drop_relation(preexisting_intermediate_relation) }}
 
-  -- build model
+  {{ run_hooks(pre_hooks, inside_transaction=False) }}
+
+  -- `BEGIN` happens here:
+  {{ run_hooks(pre_hooks, inside_transaction=True) }}
+
+  -- Build model
   {% call statement('main') -%}
     {{ get_create_table_as_sql(False, intermediate_relation, sql) }}
   {%- endcall %}
 
+  -- Cleanup
   {% if existing_relation -%}
     {% do exchange_relation(target_relation, intermediate_relation, True) %}
   {% else %}
     {{ adapter.rename_relation(intermediate_relation, target_relation) }}
   {% endif %}
 
+  {{ run_hooks(post_hooks, inside_transaction=True) }}
 
   {% set should_revoke = should_revoke(existing_relation, full_refresh_mode=True) %}
   {% do apply_grants(target_relation, grant_config, should_revoke=should_revoke) %}
 
-  -- alter relation comment
+  -- Alter relation comment
   {% do persist_docs(target_relation, model) %}
 
-  -- finally, drop the existing/backup relation after the commit
+  -- `COMMIT` happens here
+  {{ adapter.commit() }}
+
+  -- Finally, drop the existing/backup relation after the commit
   {{ doris__drop_relation(intermediate_relation) }}
 
   {{ return({'relations': [target_relation]}) }}

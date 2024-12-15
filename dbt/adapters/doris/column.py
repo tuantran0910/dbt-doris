@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,14 +16,31 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 from dataclasses import dataclass
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import TypeVar
 
 from dbt.adapters.base.column import Column
+
+Self = TypeVar("Self", bound="DorisColumn")
 
 
 @dataclass
 class DorisColumn(Column):
+    TYPE_LABELS = {
+        "TIMESTAMP": "DATETIME",
+        "BOOL": "BOOLEAN",
+    }
+    table_database: Optional[str] = None
+    table_schema: Optional[str] = None
+    table_name: Optional[str] = None
+    table_type: Optional[str] = None
+    table_owner: Optional[str] = None
+    table_stats: Optional[Dict[str, Any]] = None
+    column_index: Optional[int] = None
+
     @property
     def quoted(self) -> str:
         return "`{}`".format(self.column)

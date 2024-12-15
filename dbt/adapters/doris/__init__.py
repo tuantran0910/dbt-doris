@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,12 +16,12 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
-from dbt.adapters.doris.connections import DorisConnectionManager # noqa
+from dbt.adapters.base import AdapterPlugin
+from dbt.adapters.doris.column import DorisColumn  # noqa
+from dbt.adapters.doris.connections import DorisConnectionManager  # noqa
 from dbt.adapters.doris.connections import DorisCredentials
 from dbt.adapters.doris.impl import DorisAdapter
-
-from dbt.adapters.base import AdapterPlugin
+from dbt.adapters.doris.relation import DorisRelation  # noqa
 from dbt.include import doris
 
 
@@ -30,4 +29,4 @@ Plugin = AdapterPlugin(
     adapter=DorisAdapter,
     credentials=DorisCredentials,
     include_path=doris.PACKAGE_PATH,
-    )
+)
