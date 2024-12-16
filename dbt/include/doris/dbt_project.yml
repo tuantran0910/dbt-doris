@@ -22,4 +22,4 @@ name: dbt_doris
 version: 1.9.0
 config-version: 2
 
-macro-paths: ["macros"]
+macro-paths: [macros]

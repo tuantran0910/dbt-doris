@@ -15,14 +15,14 @@
 -- specific language governing permissions and limitations
 -- under the License.
 
-{% materialization partition, default -%}
+{% materialization partition, default %}
 
     {% set partition_by = config.get('partition_by') %}
 
     {% set target_relation = this.incorporate(type='table') %}
     {% set existing_relation = load_relation(this) %}
     {% set tmp_relation = make_temp_relation(target_relation) %}
-    {%- set full_refresh_mode = (should_full_refresh()) -%}
+    {% set full_refresh_mode = (should_full_refresh()) %}
 
     {% set on_schema_change = incremental_validate_on_schema_change(
         config.get('on_schema_change'), default='ignore'
@@ -113,4 +113,4 @@
 
     {{ return({'relations': [target_relation]}) }}
 
-{%- endmaterialization %}
+{% endmaterialization %}

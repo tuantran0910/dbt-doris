@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
@@ -149,8 +148,7 @@ class DorisConnectionManager(SQLConnectionManager):
                 connection.state = "open"
             except mysql.connector.Error as e:
                 logger.debug(
-                    "Got an error when attempting to open a mysql "
-                    "connection: '{}'".format(e)
+                    "Got an error when attempting to open a mysql " "connection: '{}'".format(e)
                 )
 
                 connection.handle = None
@@ -161,7 +159,7 @@ class DorisConnectionManager(SQLConnectionManager):
         return connection
 
     @classmethod
-    def cancel(self, connection: Connection):
+    def cancel(cls, connection: Connection):
         connection.handle.close()
 
     @classmethod

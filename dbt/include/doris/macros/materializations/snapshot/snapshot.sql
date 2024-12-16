@@ -15,16 +15,16 @@
 -- specific language governing permissions and limitations
 -- under the License.
 
-{% macro doris__snapshot_string_as_time(timestamp) -%}
-    {%- set result = "str_to_date('" ~ timestamp ~ "', '%Y-%m-%d %T')" -%}
+{% macro doris__snapshot_string_as_time(timestamp) %}
+    {% set result = "str_to_date('" ~ timestamp ~ "', '%Y-%m-%d %T')" %}
     {{ return(result) }}
-{%- endmacro %}
+{% endmacro %}
 
-{% macro doris__snapshot_merge_sql(target, source, insert_cols) -%}
-    {%- set insert_cols_csv = insert_cols | join(', ') -%}
-    {%- set valid_to_col = adapter.quote('dbt_valid_to') -%}
+{% macro doris__snapshot_merge_sql(target, source, insert_cols) %}
+    {% set insert_cols_csv = insert_cols | join(', ') %}
+    {% set valid_to_col = adapter.quote('dbt_valid_to') %}
 
-    {%- set upsert = adapter.quote(target.schema) ~ '.' ~ adapter.quote(target.table + '__snapshot_upsert') -%}
+    {% set upsert = adapter.quote(target.schema) ~ '.' ~ adapter.quote(target.table + '__snapshot_upsert') %}
 
     {% call statement('create_upsert_relation') %}
         create table if not exists {{ upsert }} like {{ target }}
@@ -33,9 +33,9 @@
     {% call statement('insert_unchanged_data') %}
         insert into {{ upsert }} ({{ insert_cols_csv }})
         select
-            {% for column in insert_cols -%}
-                {{ column }} {%- if not loop.last %}, {%- endif %}
-            {%- endfor %}
+            {% for column in insert_cols %}
+        {{ column }} {% if not loop.last %}, {% endif %}
+    {% endfor %}
         from {{ target }}
         where dbt_scd_id not in (
             select {{ source }}.dbt_scd_id from {{ source }}
@@ -53,12 +53,12 @@
         )
         select
             {% for column in insert_cols %}
-                {%- if column == valid_to_col -%}
+        {% if column == valid_to_col %}
                     updates_and_deletes.dbt_valid_to as dbt_valid_to
-                {%- else -%}
-                    target.{{ column }} as {{ column }}
-                {%- endif %} {%- if not loop.last %}, {%- endif %}
-            {%- endfor %}
+                {% else %}
+            target.{{ column }} as {{ column }}
+        {% endif %} {% if not loop.last %}, {% endif %}
+    {% endfor %}
         from {{ target }} target
         join updates_and_deletes on target.dbt_scd_id = updates_and_deletes.dbt_scd_id;
     {% endcall %}
@@ -66,9 +66,9 @@
     {% call statement('insert_new') %}
         insert into {{ upsert }} ({{ insert_cols_csv }})
         select
-            {% for column in insert_cols -%}
-                {{ column }} {%- if not loop.last %}, {%- endif %}
-            {%- endfor %}
+            {% for column in insert_cols %}
+        {{ column }} {% if not loop.last %}, {% endif %}
+    {% endfor %}
         from {{ source }}
         where {{ source }}.dbt_change_type IN ('insert');
     {% endcall %}

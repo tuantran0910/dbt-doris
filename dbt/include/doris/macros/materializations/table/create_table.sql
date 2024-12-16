@@ -15,7 +15,7 @@
 -- specific language governing permissions and limitations
 -- under the License.
 
-{% macro doris__create_table_as(temporary, relation, sql) -%}
+{% macro doris__create_table_as(temporary, relation, sql) %}
     {% set sql_header = config.get('sql_header', none) %}
     {% set table = relation.include(database=False) %}
     {{ sql_header if sql_header is not none }}
@@ -28,9 +28,9 @@
     {{ doris__partition_by() }}
     {{ doris__distributed_by() }}
     {{ doris__properties() }} as {{ doris__table_colume_type(sql) }};
-{%- endmacro %}
+{% endmacro %}
 
-{% macro doris__create_unique_table_as(temporary, relation, sql) -%}
+{% macro doris__create_unique_table_as(temporary, relation, sql) %}
     {% set sql_header = config.get('sql_header', none) %}
     {% set table = relation.include(database=False) %}
     {{ sql_header if sql_header is not none }}
@@ -41,10 +41,10 @@
     {{ doris__distributed_by() }}
     {{ doris__properties() }} as {{ doris__table_colume_type(sql) }};
 
-{%- endmacro %}
+{% endmacro %}
 
 
-{% macro doris__table_colume_type(sql) -%}
+{% macro doris__table_colume_type(sql) %}
     {% set cols = model.get('columns') %}
     {% if cols %}
         select {{ get_table_columns_and_constraints() }} from (
@@ -52,5 +52,5 @@
         ) `_table_colume_type_name`
     {% else %}
         {{ sql }}
-    {%- endif -%}
-{%- endmacro %}
+    {% endif %}
+{% endmacro %}

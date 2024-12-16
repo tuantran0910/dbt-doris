@@ -15,31 +15,31 @@
 -- specific language governing permissions and limitations
 -- under the License.
 
-{%- materialization view, adapter='doris' -%}
-    {%- set existing_relation = load_cached_relation(this) -%}
-    {%- set target_relation = this.incorporate(type='view') -%}
-    {%- set intermediate_relation =  make_intermediate_relation(target_relation) -%}
-    {%- set preexisting_intermediate_relation = load_cached_relation(intermediate_relation) -%}
+{% materialization view, adapter='doris' %}
+    {% set existing_relation = load_cached_relation(this) %}
+    {% set target_relation = this.incorporate(type='view') %}
+    {% set intermediate_relation =  make_intermediate_relation(target_relation) %}
+    {% set preexisting_intermediate_relation = load_cached_relation(intermediate_relation) %}
 
     {{ drop_relation_if_exists(intermediate_relation) }}
 
     {% if existing_relation is not none %}
-        {% call statement('main_test') -%}
+        {% call statement('main_test') %}
             {{ get_create_view_as_sql(intermediate_relation, sql) }}
-        {%- endcall %}
+        {% endcall %}
 
         {{ drop_relation_if_exists(intermediate_relation) }}
         {{ drop_relation_if_exists(target_relation) }}
 
-        {% call statement('main') -%}
+        {% call statement('main') %}
             {{ get_create_view_as_sql(target_relation, sql) }}
-        {%- endcall %}
+        {% endcall %}
     {% else %}
-        {% call statement('main') -%}
+        {% call statement('main') %}
             {{ get_create_view_as_sql(target_relation, sql) }}
-        {%- endcall %}
+        {% endcall %}
     {% endif %}
 
     {{ return({'relations': [target_relation]}) }}
 
-{%- endmaterialization -%}
+{% endmaterialization %}

@@ -15,16 +15,16 @@
 -- specific language governing permissions and limitations
 -- under the License.
 
-{% macro doris__create_view_as(relation, sql) -%}
-    {%- set sql_header = config.get('sql_header', none) -%}
+{% macro doris__create_view_as(relation, sql) %}
+    {% set sql_header = config.get('sql_header', none) %}
 
     {{ sql_header if sql_header is not none }}
     create View {{ relation }} {{ doris__view_colume_comment() }} as {{ sql }};
-{%- endmacro %}
+{% endmacro %}
 
-{% macro doris__view_colume_comment() -%}
+{% macro doris__view_colume_comment() %}
     {% set cols = model.get('columns') %}
     {% if cols %}
         ( {{ doris__get_view_columns_comment() }} )
-    {%- endif -%}
-{%- endmacro %}
+    {% endif %}
+{% endmacro %}

@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 from dataclasses import dataclass
 from dataclasses import field
 
@@ -43,9 +42,7 @@ class DorisIncludePolicy(Policy):
 @dataclass(frozen=True, eq=False, repr=False)
 class DorisRelation(BaseRelation):
     quote_policy: DorisQuotePolicy = field(default_factory=lambda: DorisQuotePolicy())
-    include_policy: DorisIncludePolicy = field(
-        default_factory=lambda: DorisIncludePolicy()
-    )
+    include_policy: DorisIncludePolicy = field(default_factory=lambda: DorisIncludePolicy())
     quote_character: str = "`"
 
     def __post_init__(self):

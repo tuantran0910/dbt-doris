@@ -15,6 +15,6 @@
 -- specific language governing permissions and limitations
 -- under the License.
 
-{% macro doris__current_timestamp() -%}
+{% macro doris__current_timestamp() %}
     current_timestamp()
-{%- endmacro %}
+{% endmacro %}

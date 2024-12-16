@@ -16,7 +16,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 from concurrent.futures import Future
 from enum import Enum
 from typing import Any
@@ -105,9 +104,7 @@ class DorisAdapter(SQLAdapter):
     def quote(cls, identifier: str) -> str:
         return "`{}`".format(identifier)
 
-    def list_relations_without_caching(
-        self, schema_relation: DorisRelation
-    ) -> List[DorisRelation]:
+    def list_relations_without_caching(self, schema_relation: DorisRelation) -> List[DorisRelation]:
         kwargs = {"schema_relation": schema_relation}
         try:
             results = self.execute_macro(LIST_RELATIONS_MACRO_NAME, kwargs=kwargs)
@@ -124,9 +121,7 @@ class DorisAdapter(SQLAdapter):
                     f"got {len(row)} values, expected 4"
                 )
             _, name, schema, type_info = row
-            relation_type = (
-                RelationType.View if "view" in type_info else RelationType.Table
-            )
+            relation_type = RelationType.View if "view" in type_info else RelationType.Table
             relation = self.Relation.create(
                 database=None,
                 schema=schema,
@@ -142,9 +137,7 @@ class DorisAdapter(SQLAdapter):
         return "string"
 
     def check_schema_exists(self, database, schema):
-        results = self.execute_macro(
-            LIST_SCHEMAS_MACRO_NAME, kwargs={"database": database}
-        )
+        results = self.execute_macro(LIST_SCHEMAS_MACRO_NAME, kwargs={"database": database})
 
         exists = True if schema in [row[0] for row in results] else False
         return exists
@@ -156,9 +149,7 @@ class DorisAdapter(SQLAdapter):
         return super().get_relation(database, schema, identifier)
 
     def drop_schema(self, relation: BaseRelation):
-        relations = self.list_relations(
-            database=relation.database, schema=relation.schema
-        )
+        relations = self.list_relations(database=relation.database, schema=relation.schema)
         for relation in relations:
             self.drop_relation(relation)
         super().drop_schema(relation)
@@ -197,9 +188,7 @@ class DorisAdapter(SQLAdapter):
         return _
 
     @classmethod
-    def _catalog_filter_table(
-        cls, table: agate.Table, manifest: Manifest
-    ) -> agate.Table:
+    def _catalog_filter_table(cls, table: agate.Table, manifest: Manifest) -> agate.Table:
         table = table_from_rows(
             table.rows,
             table.column_names,
@@ -215,16 +204,13 @@ class DorisAdapter(SQLAdapter):
     ) -> agate.Table:
         if len(schemas) != 1:
             dbt.exceptions.raise_compiler_error(
-                f"Expected only one schema in Doris _get_one_catalog, found "
-                f"{schemas}"
+                f"Expected only one schema in Doris _get_one_catalog, found {schemas}"
             )
 
         return super()._get_one_catalog(information_schema, schemas, manifest)
 
     # Methods used in adapter tests
-    def timestamp_add_sql(
-        self, add_to: str, number: int = 1, interval: str = "hour"
-    ) -> str:
+    def timestamp_add_sql(self, add_to: str, number: int = 1, interval: str = "hour") -> str:
         # for backwards compatibility, we're compelled to set some sort of
         # default. A lot of searching has lead me to believe that the
         # '+ interval' syntax used in Doris/redshift is relatively common
@@ -232,9 +218,7 @@ class DorisAdapter(SQLAdapter):
         return f"{add_to} + interval {number} {interval}"
 
     @classmethod
-    def render_raw_columns_constraints(
-        cls, raw_columns: Dict[str, Dict[str, Any]]
-    ) -> List:
+    def render_raw_columns_constraints(cls, raw_columns: Dict[str, Dict[str, Any]]) -> List:
         rendered_column_constraints = []
         for v in raw_columns.values():
             cols_name = cls.quote(v["name"]) if v.get("quote") else v["name"]

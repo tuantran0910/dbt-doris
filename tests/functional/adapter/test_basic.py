@@ -55,14 +55,10 @@ class TestSimpleMaterializationsdoris(BaseSimpleMaterializations):
         check_relation_types(project.adapter, expected)
 
         relation = relation_from_name(project.adapter, "base")
-        result = project.run_sql(
-            f"select count(*) as num_rows from {relation}", fetch="one"
-        )
+        result = project.run_sql(f"select count(*) as num_rows from {relation}", fetch="one")
         assert result[0] == 10
 
-        check_relations_equal(
-            project.adapter, ["base", "view_model", "table_model", "swappable"]
-        )
+        check_relations_equal(project.adapter, ["base", "view_model", "table_model", "swappable"])
 
 
 class TestSingularTestsdoris(BaseSingularTests):
@@ -86,9 +82,7 @@ class TestEphemeraldoris(BaseEphemeral):
         assert len(results) == 2
         check_result_nodes_by_name(results, ["view_model", "table_model"])
         relation = relation_from_name(project.adapter, "base")
-        result = project.run_sql(
-            f"select count(*) as num_rows from {relation}", fetch="one"
-        )
+        result = project.run_sql(f"select count(*) as num_rows from {relation}", fetch="one")
         assert result[0] == 10
         check_relations_equal(project.adapter, ["base", "view_model", "table_model"])
 
@@ -99,14 +93,10 @@ class TestIncrementaldoris(BaseIncremental):
         results = run_dbt(["seed"])
         assert len(results) == 2
         relation = relation_from_name(project.adapter, "base")
-        result = project.run_sql(
-            f"select count(*) as num_rows from {relation}", fetch="one"
-        )
+        result = project.run_sql(f"select count(*) as num_rows from {relation}", fetch="one")
         assert result[0] == 10
         relation = relation_from_name(project.adapter, "added")
-        result = project.run_sql(
-            f"select count(*) as num_rows from {relation}", fetch="one"
-        )
+        result = project.run_sql(f"select count(*) as num_rows from {relation}", fetch="one")
         assert result[0] == 20
         results = run_dbt(["run", "--vars", "seed_name: base"])
         assert len(results) == 1

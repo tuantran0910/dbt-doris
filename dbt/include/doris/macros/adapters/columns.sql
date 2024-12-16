@@ -11,6 +11,7 @@
             and table_name = '{{ relation.identifier }}'
     {% endcall %}
     {% set table = load_result('get_columns_in_relation').table %}
+
     {{ return(sql_convert_columns_in_relation(table)) }}
 {% endmacro %}
 
@@ -20,8 +21,8 @@
 
 {% macro columns_and_constraints(table_type="table") %}
     {# Loop through user_provided_columns to create DDL with data types and constraints #}
-    {%- set raw_column_constraints = adapter.render_raw_columns_constraints(raw_columns=model['columns']) -%}
-    {% for c in raw_column_constraints -%}
+    {% set raw_column_constraints = adapter.render_raw_columns_constraints(raw_columns=model['columns']) %}
+    {% for c in raw_column_constraints %}
         {% if table_type == "table" %}
             {{ c.get_table_column_constraint() }}{{ "," if not loop.last or raw_model_constraints }}
         {% else %}

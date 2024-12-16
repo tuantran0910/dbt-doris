@@ -16,10 +16,10 @@
 -- under the License.
 
 {% materialization table, adapter='doris' %}
-  {%- set existing_relation = load_cached_relation(this) -%}
-  {%- set target_relation = this.incorporate(type='table') %}
-  {%- set intermediate_relation =  make_intermediate_relation(target_relation) -%}
-  {%- set preexisting_intermediate_relation = load_cached_relation(intermediate_relation) -%}
+  {% set existing_relation = load_cached_relation(this) %}
+  {% set target_relation = this.incorporate(type='table') %}
+  {% set intermediate_relation =  make_intermediate_relation(target_relation) %}
+  {% set preexisting_intermediate_relation = load_cached_relation(intermediate_relation) %}
 
   -- Grab current tables grants config for comparision later on
   {% set grant_config = config.get('grants') %}
@@ -33,12 +33,12 @@
   {{ run_hooks(pre_hooks, inside_transaction=True) }}
 
   -- Build model
-  {% call statement('main') -%}
+  {% call statement('main') %}
     {{ get_create_table_as_sql(False, intermediate_relation, sql) }}
-  {%- endcall %}
+  {% endcall %}
 
   -- Cleanup
-  {% if existing_relation -%}
+  {% if existing_relation %}
     {% do exchange_relation(target_relation, intermediate_relation, True) %}
   {% else %}
     {{ adapter.rename_relation(intermediate_relation, target_relation) }}

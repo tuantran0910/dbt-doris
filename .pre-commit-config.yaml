@@ -2,78 +2,67 @@ default_language_version:
   python: python3
 
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v5.0.0
-  hooks:
-  - id: check-yaml
-    args: [--unsafe]
-  - id: check-json
-  - id: end-of-file-fixer
-  - id: trailing-whitespace
-  - id: check-case-conflict
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        args: [--unsafe]
+      - id: check-json
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-case-conflict
 
-- repo: https://github.com/dbt-labs/pre-commit-hooks
-  rev: v0.1.0a1
-  hooks:
-  -   id: dbt-core-in-adapters-check
 
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.8.3
-  hooks:
-    - id: ruff
-      types_or: [python, pyi]
-      args: [--fix]
-    - id: ruff-format
-      types_or: [python, pyi]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.3
+    hooks:
+      - id: ruff
+        types_or: [python, pyi]
+        args: [--fix]
+      - id: ruff-format
+        types_or: [python, pyi]
 
-- repo: https://github.com/pycqa/flake8
-  rev: 7.1.1
-  hooks:
-  - id: flake8
-    exclude: tests/
-    args:
-    - --max-line-length=99
-    - --select=E,F,W
-    - --ignore=E203,E501,E741,W503,W504
-    - --per-file-ignores=*/__init__.py:F401
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        exclude: tests/
+        args:
+          - --max-line-length=99
+          - --select=E,F,W
+          - --ignore=E203,E501,E741,W503,W504
+          - --per-file-ignores=*/__init__.py:F401
 
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.13.0
-  hooks:
-  - id: mypy
-    args:
-    - --explicit-package-bases
-    - --ignore-missing-imports
-    - --pretty
-    - --show-error-codes
-    files: ^dbt/adapters/doris
-    additional_dependencies:
-    - types-PyYAML
-    - types-protobuf
-    - types-pytz
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        args:
+          - --explicit-package-bases
+          - --ignore-missing-imports
+          - --pretty
+          - --show-error-codes
+        files: ^dbt/adapters/doris
+        additional_dependencies:
+          - types-PyYAML
+          - types-protobuf
+          - types-pytz
 
-- repo: https://github.com/adrienverge/yamllint
-  rev: v1.35.1
-  hooks:
-  - id: yamllint
-    stages: [pre-commit]
-    args: [--format, parsable]
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        stages: [pre-commit]
+        args: [--format, parsable]
 
-- repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
-  rev: 0.2.3
-  hooks:
-  - id: yamlfmt
-    stages: [pre-commit]
-    args: [--mapping, '2', --sequence, '4', --offset, '2', --width, '150', --implicit-start]
+  - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+    rev: 0.2.3
+    hooks:
+      - id: yamlfmt
+        stages: [pre-commit]
+        args: [--mapping, '2', --sequence, '4', --offset, '2', --width, '150', --implicit_start]
 
-- repo: https://github.com/sqlfluff/sqlfluff
-  rev: 3.3.0
-  hooks:
-  - id: sqlfluff-fix
-    stages: [pre-commit]
-    files: ^dbt/include/doris
-
-- repo: https://github.com/asottile/reorder_python_imports
-  rev: v3.14.0
-  hooks:
-    - id: reorder-python-imports
+  - repo: https://github.com/asottile/reorder_python_imports
+    rev: v3.14.0
+    hooks:
+      - id: reorder-python-imports

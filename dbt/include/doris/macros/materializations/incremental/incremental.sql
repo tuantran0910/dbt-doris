@@ -124,7 +124,7 @@
         {{ build_sql }}
     {% endcall %}
 
-    {% do persist_docs(target_relation, model) %} 
+    {% do persist_docs(target_relation, model) %}
     {{ run_hooks(post_hooks, inside_transaction=True) }}
     {% do adapter.commit() %}
     {% for rel in to_drop %}
@@ -133,4 +133,4 @@
     {{ run_hooks(post_hooks, inside_transaction=False) }}
 
     {{ return({'relations': [target_relation]}) }}
-{%- endmaterialization %}
+{% endmaterialization %}
