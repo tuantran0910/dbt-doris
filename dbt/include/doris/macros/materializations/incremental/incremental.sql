@@ -21,6 +21,11 @@
     {% set target_relation = this.incorporate(type='table') %}
     {% set existing_relation = load_relation(this) %}
     {% set tmp_relation = make_temp_relation(this) %}
+
+    {# Modify tmp_relation name. E.g: from `raw`.`sessions__dbt_tmp_20241201 00:00:00+00:00` to `raw`.`sessions__dbt_tmp_20241201_00_00_00_00_00` #}
+    {% set new_tmp_relation_name = tmp_relation.identifier | replace(' ', '_') | replace(':', '_') | replace('+', '_') %}
+    {% set tmp_relation = tmp_relation.incorporate(path={"identifier": new_tmp_relation_name}) %}
+
     {% set strategy = dbt_doris_validate_get_incremental_strategy(config) %}
     {% set on_schema_change = incremental_validate_on_schema_change(config.get('on_schema_change'), default='ignore') %}
     {% set incremental_predicates = [] if config.get('incremental_predicates') is none else config.get('incremental_predicates') %}

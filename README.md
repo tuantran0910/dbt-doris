@@ -35,7 +35,7 @@ cd dbt-doris
 - Build the adapter
 
 ```bash
-uv build
+uv sync
 ```
 
 ## Contribute
