@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-
 class DorisColumnItem:
     def __init__(self, col_name, col_type, col_comment, col_default):
         self._col_name = col_name

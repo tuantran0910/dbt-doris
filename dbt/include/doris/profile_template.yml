@@ -1,0 +1,22 @@
+fixed:
+  type: doris
+prompts:
+  host:
+    hint: 'Hostname for your instance(your doris fe host)'
+  port:
+    default: 9030
+    type: 'int'
+    hint: 'Port for your instance(your doris fe query_port)'
+  schema:
+    default: 'dbt'
+    hint: 'The schema name as stored in the database, Doris have not schema to make a collection of table or view'
+  username:
+    hint: 'Your doris username'
+  password:
+    hint: 'Your doris password, if no password, just Enter'
+    hide_input: true
+    default: ''
+  threads:
+    hint: '1 or more'
+    type: 'int'
+    default: 1

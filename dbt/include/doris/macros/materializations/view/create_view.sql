@@ -19,7 +19,7 @@
     {%- set sql_header = config.get('sql_header', none) -%}
 
     {{ sql_header if sql_header is not none }}
-  create View {{ relation }} {{ doris__view_colume_comment() }} as {{ sql }};
+    create View {{ relation }} {{ doris__view_colume_comment() }} as {{ sql }};
 {%- endmacro %}
 
 {% macro doris__view_colume_comment() -%}

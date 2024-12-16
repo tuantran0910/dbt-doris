@@ -16,6 +16,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
@@ -99,7 +100,6 @@ class DorisConnectionManager(SQLConnectionManager):
                 self.rollback_if_open()
             except mysql.connector.Error:
                 logger.debug("Failed to release connection!")
-                pass
 
             raise DbtDatabaseError(str(e).strip()) from e
 
@@ -185,7 +185,6 @@ class DorisConnectionManager(SQLConnectionManager):
             rows_affected=num_rows,
         )
 
-    @classmethod
     def begin(self):
         """
         https://doris.apache.org/docs/data-operate/import/import-scenes/load-atomicity/
@@ -193,6 +192,9 @@ class DorisConnectionManager(SQLConnectionManager):
         """
         pass
 
-    @classmethod
     def commit(self):
+        """
+        https://doris.apache.org/docs/data-operate/import/import-scenes/load-atomicity/
+        Doris's inserting always transaction, ignore it
+        """
         pass

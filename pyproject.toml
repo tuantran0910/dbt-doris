@@ -4,7 +4,7 @@ name = "dbt-doris"
 description = "The set of adapter protocols and base functionality that supports integration Doris with dbt-core"
 readme = "README.md"
 keywords = ["dbt", "adapter", "adapters", "database", "elt", "dbt-core", "dbt Core", "doris"]
-requires-python = ">=3.10,<=3.12"
+requires-python = ">=3.10,<3.13"
 authors = [
     { name = "tuantran0910", email = "tntuan0910@gmail.com" },
 ]
@@ -26,6 +26,7 @@ dependencies = [
     "dbt-adapters>=1.10.4",
     "dbt-common>=1.10.4,<2.0",
     "dbt-core>=1.9.0",
+    "flake8-pyproject>=1.2.3",
     "mysql-connector-python>=9.1.0",
     "urllib3>=2.2.3",
 ]
@@ -49,67 +50,83 @@ packages = ["dbt"]
 [tool.hatch.version]
 path = "dbt/adapters/doris/__version__.py"
 
-[tool.hatch.envs.default]
-python = "3.12"
-dependencies = [
-    "dbt-adapters @ git+https://github.com/dbt-labs/dbt-adapters.git",
-    "dbt-common @ git+https://github.com/dbt-labs/dbt-common.git",
-    "dbt-tests-adapter @ git+https://github.com/dbt-labs/dbt-adapters.git#subdirectory=dbt-tests-adapter",
-    "dbt-core @ git+https://github.com/dbt-labs/dbt-core.git#subdirectory=core",
-    "pre-commit==3.7.0",
-    "freezegun",
-    "pytest",
-    "pytest-dotenv",
-    "pytest-mock",
-    "pytest-xdist",
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+exclude = ["*/__init__.py"]
+indent-width = 4
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = ["F"]
+ignore = ["W", "F401", "F841"]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+[tool.mypy]
+ignore_missing_imports = true
+follow_imports = "skip"
+exclude = [
+    "\\.eggs",
+    "\\.git",
+    "\\.mypy_cache",
+    "\\.venv",
+    "venv",
+    "env",
+    "venv.*",
+    "_build",
+    "build",
+    "dist"
 ]
 
-[tool.hatch.envs.default.env-vars]
-DBT_TEST_USER_1 = "dbt_test_user_1"
-DBT_TEST_USER_2 = "dbt_test_user_2"
-DBT_TEST_USER_3 = "dbt_test_user_3"
-
-[tool.hatch.envs.default.scripts]
-setup = "pre-commit install"
-code-quality = "pre-commit run --all-files"
-unit-tests = "python -m pytest {args:tests/unit}"
-integration-tests = "python -m pytest {args:tests/functional}"
-docker-dev = [
-    "echo Does not support integration testing, only development and unit testing.",
-	"docker build -f docker/dev.Dockerfile -t dbt-doris-dev .",
-	"docker run --rm -it --name dbt-doris-dev -v $(pwd):/opt/code dbt-doris-dev",
-]
-docker-prod = "docker build -f docker/Dockerfile -t dbt-doris ."
-
-[tool.hatch.envs.build]
-detached = true
-dependencies = [
-    "wheel",
-    "twine",
-    "check-wheel-contents",
+[tool.flake8]
+ignore = [
+    "W503",
+    "E731",
+    "E203", # black and flake8 disagree on whitespace before ':'
+    "E501", # line too long (> 79 characters)
 ]
 
-[tool.hatch.envs.build.scripts]
-check-all = [
-    "- check-wheel",
-    "- check-sdist",
-]
-check-wheel = [
-    "twine check dist/*",
-    "find ./dist/dbt_doris-*.whl -maxdepth 1 -type f | xargs python -m pip install --force-reinstall --find-links=dist/",
-    "pip freeze | grep dbt-doris",
-]
-check-sdist = [
-    "check-wheel-contents dist/*.whl --ignore W007,W008",
-    "find ./dist/dbt_doris-*.gz -maxdepth 1 -type f | xargs python -m pip install --force-reinstall --find-links=dist/",
-    "pip freeze | grep dbt-doris",
+per-file-ignores = [
+    "__init__.py:F401" # imported but unused
 ]
 
-[tool.pytest]
-env_files = ["test.env"]
-testpaths = [
-    "tests/functional",
-    "tests/unit",
+max-line-length = 100
+max-complexity = 18
+
+exclude = [
+    ".venv/",
+    "venv/"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/integration", "tests/unit"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore:.*U.*mode is deprecated:DeprecationWarning",
+    "ignore:.*'soft_unicode' has been renamed to 'soft_str'*:DeprecationWarning",
+    "ignore:.*: ResourceWarning",
 ]
 
 [dependency-groups]

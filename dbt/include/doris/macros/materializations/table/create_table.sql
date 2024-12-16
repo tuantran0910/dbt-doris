@@ -22,13 +22,12 @@
     {% if temporary %}
         {{ doris__drop_relation(relation) }}
     {% endif %}
-    create table {{ table }}
+    create table if not exists {{ table }}
     {{ doris__duplicate_key() }}
     {{ doris__table_comment() }}
     {{ doris__partition_by() }}
     {{ doris__distributed_by() }}
     {{ doris__properties() }} as {{ doris__table_colume_type(sql) }};
-
 {%- endmacro %}
 
 {% macro doris__create_unique_table_as(temporary, relation, sql) -%}
